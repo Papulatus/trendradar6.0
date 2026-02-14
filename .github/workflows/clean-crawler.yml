@@ -9,6 +9,12 @@ name: Check In
 
 on:
   workflow_dispatch:
+  schedule:
+    # ✅ 每7天运行1次（UTC时间每周日0点0分，对应北京时间每周日8点0分）
+    # cron表达式说明：*/7 表示每7天，0 0 表示午夜0点0分
+    - cron: '0 0 */1 * *'
+    # 可选：如果担心GitHub定时延迟，可设置更频繁（如每天运行，注释上面一行，启用下面一行）
+    # - cron: '0 0 * * *'
 
 jobs:
   del_runs:
