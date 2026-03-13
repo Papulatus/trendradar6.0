@@ -269,9 +269,7 @@ class NotificationDispatcher:
         ):
             results["email"] = self._send_email(report_type, html_file_path)
 
-"""
-触发股票虾分析
-"""
+        
         # ========== 触发股票虾分析 ==========
         gupiao_xia_enabled = os.getenv("GUPIAO_XIA_ENABLED", "false").lower() == "true"
         if gupiao_xia_enabled:
