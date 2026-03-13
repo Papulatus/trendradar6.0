@@ -517,3 +517,14 @@ advanced:
     slack: 4000
   batch_send_interval: 3              # 批次发送间隔（秒）
   feishu_message_separator: "━━━━━━━━━━━━━━━━"
+
+
+  # ===============================================================
+# 12. 股票虾触发配置
+# ===============================================================
+gupiao_xia:
+  enabled: false                   # 是否启用（使用环境变量覆盖）
+  app_id: ""                       # 使用GitHub Secrets
+  app_secret: ""                   # 使用GitHub Secrets
+  chat_id: "oc_d9e6da9ad5b0e0aa961cfb83503a905b"
+  trigger_message: "📊 请分析最新热点并推荐股票"
