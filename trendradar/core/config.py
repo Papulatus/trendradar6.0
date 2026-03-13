@@ -7,15 +7,6 @@
 
 from typing import Dict, List, Optional, Tuple
 
-# 股票虾配置
-"GUPIAO_XIA": {
-    "ENABLED": os.getenv("GUPIAO_XIA_ENABLED", "false").lower() == "true",
-    "APP_ID": os.getenv("GUPIAO_XIA_APP_ID", ""),
-    "APP_SECRET": os.getenv("GUPIAO_XIA_APP_SECRET", ""),
-    "CHAT_ID": os.getenv("GUPIAO_XIA_CHAT_ID", ""),
-    "TRIGGER_MESSAGE": os.getenv("GUPIAO_XIA_TRIGGER_MESSAGE", "📊 请分析最新热点并推荐股票"),
-}
-
 def parse_multi_account_config(config_value: str, separator: str = ";") -> List[str]:
     """
     解析多账号配置，返回账号列表
