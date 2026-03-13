@@ -23,7 +23,6 @@ import json
 import requests
 from typing import Optional
 
-
 def send_trigger_to_gupiao_xia(
     app_id: str,
     app_secret: str,
@@ -79,16 +78,16 @@ def send_trigger_to_gupiao_xia(
                 "receive_id": chat_id,
                 "msg_type": "text",
                 "content": json.dumps({"text": trigger_message})
-                },
+            },
             proxies=proxies,
             timeout=10
         )
         send_resp.raise_for_status()
-            print(f"[股票虾触发] 发送成功: {trigger_message}")
+        print(f"[股票虾触发] 发送成功: {trigger_message}")
         return True
     
-        except Exception as e:
-            print(f"[股票虾触发] 发送失败: {e}")
+    except Exception as e:
+        print(f"[股票虾触发] 发送失败: {e}")
         return False
 
 """
