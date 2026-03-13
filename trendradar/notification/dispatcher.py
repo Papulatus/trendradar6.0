@@ -266,6 +266,28 @@ class NotificationDispatcher:
         ):
             results["email"] = self._send_email(report_type, html_file_path)
 
+"""
+触发股票虾分析
+"""
+
+        # ========== 触发股票虾分析 ==========
+        gupiao_xia_config = self.config.get("GUPIAO_XIA", {})
+        if gupiao_xia_config.get("ENABLED"):
+            from .senders import send_trigger_to_gupiao_xia
+            
+            results["gupiao_xia"] = send_trigger_to_gupiao_xia(
+                app_id=gupiao_xia_config.get("APP_ID", ""),
+                app_secret=gupiao_xia_config.get("APP_SECRET", ""),
+                chat_id=gupiao_xia_config.get("CHAT_ID", ""),
+                trigger_message=gupiao_xia_config.get("TRIGGER_MESSAGE", "📊请分析最新热点并推荐股票"),
+                proxy_url=proxy_url,
+            )
+
+"""
+触发股票虾分析
+"""
+
+        
         return results
 
     def _send_to_multi_accounts(
