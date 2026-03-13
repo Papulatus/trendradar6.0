@@ -9,8 +9,8 @@
     dispatcher = NotificationDispatcher(config, get_time_func, split_content_func)
     results = dispatcher.dispatch_all(report_data, report_type, ...)
 """
-import os
 
+import os
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
@@ -270,21 +270,6 @@ class NotificationDispatcher:
 """
 触发股票虾分析
 """
-
-        # ========== 触发股票虾分析 ==========
-        gupiao_xia_config = self.config.get("GUPIAO_XIA", {})
-        if gupiao_xia_config.get("ENABLED"):
-            from .senders import send_trigger_to_gupiao_xia
-            
-            results["gupiao_xia"] = send_trigger_to_gupiao_xia(
-                app_id=gupiao_xia_config.get("APP_ID", ""),
-                app_secret=gupiao_xia_config.get("APP_SECRET", ""),
-                chat_id=gupiao_xia_config.get("CHAT_ID", ""),
-                trigger_message=gupiao_xia_config.get("TRIGGER_MESSAGE", "📊请分析最新热点并推荐股票"),
-                proxy_url=proxy_url,
-            )
-
-
         # ========== 触发股票虾分析 ==========
         gupiao_xia_enabled = os.getenv("GUPIAO_XIA_ENABLED", "false").lower() == "true"
         if gupiao_xia_enabled:
@@ -297,7 +282,8 @@ class NotificationDispatcher:
                 trigger_message=os.getenv("GUPIAO_XIA_TRIGGER_MESSAGE", "📊 请分析最新热点并推荐股票"),
                 proxy_url=proxy_url,
             )
-
+        
+        return results
 """
 触发股票虾分析
 """
