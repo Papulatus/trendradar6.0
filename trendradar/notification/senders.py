@@ -167,8 +167,10 @@ def send_to_feishu(
         )
 
         # 根据 webhook 域名选择 payload 格式
-        # www.feishu.cn 使用纯文本格式，其他域名（open.feishu.cn/open.larksuite.com）使用卡片 2.0
-        if "www.feishu.cn" in webhook_url:
+        # www.feishu.cn、open.feishu.cn、open.larksuite.com 使用纯文本格式
+        if ("www.feishu.cn" in webhook_url 
+            or "open.feishu.cn" in webhook_url 
+            or "open.larksuite.com" in webhook_url):
             payload = {
                 "msg_type": "text",
                 "content": {
