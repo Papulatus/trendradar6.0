@@ -166,5 +166,11 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
           S3_REGION: ${{ secrets.S3_REGION }}
+          # 股票虾配置
+          GUPIAO_XIA_ENABLED: ${{ secrets.GUPIAO_XIA_ENABLED }}
+          GUPIAO_XIA_APP_ID: ${{ secrets.GUPIAO_XIA_APP_ID }}
+          GUPIAO_XIA_APP_SECRET: ${{ secrets.GUPIAO_XIA_APP_SECRET }}
+          GUPIAO_XIA_CHAT_ID: ${{ secrets.GUPIAO_XIA_CHAT_ID }}
+          GUPIAO_XIA_TRIGGER_MESSAGE: ${{ secrets.GUPIAO_XIA_TRIGGER_MESSAGE }}
           GITHUB_ACTIONS: true
         run: uv run python -m trendradar
