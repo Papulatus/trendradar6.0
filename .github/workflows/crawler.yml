@@ -60,7 +60,7 @@ jobs:
 
       # Long-running fork: the upstream 7-day trial expiration check is intentionally removed.
       # GitHub may still disable scheduled workflows after 60 days of repository inactivity;
-      # the daily keepalive workflow prevents that by creating repository activity.
+      # the low-frequency keepalive workflow creates repository activity only when needed.
 
       # --------------------------------------------------------------------------------
       # 🚦 TRAFFIC CONTROL / 流量控制
