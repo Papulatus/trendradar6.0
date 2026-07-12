@@ -28,15 +28,15 @@ feishu:
   allow_bots: all
 ```
 
-并为目标群关闭 mention 要求：
+并为目标群设置单独规则。完整示例：
 
 ```yaml
-platforms:
-  feishu:
-    extra:
-      group_rules:
-        <目标群 chat_id>:
-          require_mention: false
+feishu:
+  allow_bots: all
+  group_rules:
+    <目标群 chat_id>:
+      policy: open
+      require_mention: false
 ```
 
 `allow_bots: all` 是飞书平台级设置；应通过专用群和群规则限制使用范围，避免其他机器人消息触发 Hermes。
