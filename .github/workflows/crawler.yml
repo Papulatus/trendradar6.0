@@ -38,6 +38,12 @@ on:
     - cron: "33 * * * *"
 
   workflow_dispatch:
+    inputs:
+      force_push:
+        description: "忽略推送时段并强制发送（仅手动调试）"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: crawler-${{ github.ref_name }}
@@ -139,6 +145,7 @@ jobs:
           GENERIC_AGENT_APP_ID: ${{ secrets.GENERIC_AGENT_APP_ID }}
           GENERIC_AGENT_APP_SECRET: ${{ secrets.GENERIC_AGENT_APP_SECRET }}
           GENERIC_AGENT_CHAT_ID: ${{ secrets.GENERIC_AGENT_CHAT_ID }}
+          FORCE_PUSH: ${{ github.event_name == 'workflow_dispatch' && inputs.force_push || 'false' }}
           GITHUB_ACTIONS: true
         run: uv run python -m trendradar
 

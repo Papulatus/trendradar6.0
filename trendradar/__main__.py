@@ -832,12 +832,17 @@ class NewsAnalyzer:
             total_count = news_count + rss_count
             print(f"[推送] 准备发送：{' + '.join(content_parts)}，合计 {total_count} 条")
 
+            # 手动调试可强制推送；定时运行仍严格遵守 timeline 调度。
+            force_push = os.getenv("FORCE_PUSH", "false").lower() == "true"
+            if force_push:
+                print("[推送] 手动调试模式: 忽略当前推送时段")
+
             # 调度系统决策
-            if not schedule.push:
+            if not schedule.push and not force_push:
                 print("[推送] 调度器: 当前时间段不执行推送")
                 return False
 
-            if schedule.once_push and schedule.period_key:
+            if not force_push and schedule.once_push and schedule.period_key:
                 scheduler = self.ctx.create_scheduler()
                 date_str = self.ctx.format_date()
                 if scheduler.already_executed(schedule.period_key, "push", date_str):
