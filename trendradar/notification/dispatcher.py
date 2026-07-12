@@ -361,16 +361,16 @@ class NotificationDispatcher:
         ):
             results["email"] = self._send_email(report_type, html_file_path)
 
-        # ========== 触发股票虾分析 ==========
-        gupiao_xia_enabled = os.getenv("GUPIAO_XIA_ENABLED", "false").lower() == "true"
-        if gupiao_xia_enabled:
-            from .senders import send_trigger_to_gupiao_xia
+        # ========== 触发通用 Agent ==========
+        generic_agent_enabled = os.getenv("GENERIC_AGENT_ENABLED", "false").lower() == "true"
+        if generic_agent_enabled:
+            from .senders import send_trigger_to_generic_agent
             
-            results["gupiao_xia"] = send_trigger_to_gupiao_xia(
-                app_id=os.getenv("GUPIAO_XIA_APP_ID", ""),
-                app_secret=os.getenv("GUPIAO_XIA_APP_SECRET", ""),
-                chat_id=os.getenv("GUPIAO_XIA_CHAT_ID", ""),
-                trigger_message=os.getenv("GUPIAO_XIA_TRIGGER_MESSAGE", "📊 请分析最新热点并推荐股票"),
+            results["generic_agent"] = send_trigger_to_generic_agent(
+                app_id=os.getenv("GENERIC_AGENT_APP_ID", ""),
+                app_secret=os.getenv("GENERIC_AGENT_APP_SECRET", ""),
+                chat_id=os.getenv("GENERIC_AGENT_CHAT_ID", ""),
+                trigger_message=os.getenv("GENERIC_AGENT_TRIGGER_MESSAGE", "请处理最新报告"),
                 proxy_url=proxy_url,
             )
 
