@@ -1,46 +1,53 @@
-# TrendRadar → Hermes → 飞书集成
+# TrendRadar → 飞书 → Hermes Generic Agent
 
-## 推荐数据流
+## 数据流
 
-`GitHub Actions / TrendRadar` → `Hermes Webhook` → `Generic Agent` → 当前飞书会话
+`GitHub Actions / TrendRadar` → `飞书应用 API` → `目标飞书群` → `Hermes Generic Agent`
 
-不要再让一个飞书机器人向另一个机器人发消息。飞书自定义机器人 webhook 是单向入站通道，Hermes 也不应依赖“读取另一个机器人的历史消息”。TrendRadar 已有通用 Webhook；本 fork 只增加 Hermes Webhook V2 的 HMAC 签名。
+该方案不要求 Hermes 主机开放公网入口。TrendRadar 使用飞书应用凭据获取 tenant access token，并把完整报告按飞书消息上限分批发送到目标群，而不是只发送一条触发语句。
 
-## Hermes 侧
+## GitHub Actions Secrets
 
-1. 为 `mini-analyze` profile 启用 webhook adapter，并使用可被 GitHub Actions 访问的 HTTPS 地址（反向代理或 Cloudflare Tunnel）。
-2. 创建动态订阅：
+原有配置按下列名称迁移：
 
-```bash
-hermes webhook subscribe trendradar-report \
-  --prompt 'TrendRadar 报告批次：{title}\n\n{content}\n\n请保留关键数据，给出简洁摘要、风险点和需要进一步研究的标的。' \
-  --events trendradar_report \
-  --deliver feishu \
-  --deliver-chat-id '<当前飞书 chat_id>' \
-  --secret '<强随机共享密钥>'
+- `GUPIAO_XIA_ENABLED` → `GENERIC_AGENT_ENABLED`
+- `GUPIAO_XIA_APP_ID` → `GENERIC_AGENT_APP_ID`
+- `GUPIAO_XIA_APP_SECRET` → `GENERIC_AGENT_APP_SECRET`
+- `GUPIAO_XIA_CHAT_ID` → `GENERIC_AGENT_CHAT_ID`
+
+`GUPIAO_XIA_TRIGGER_MESSAGE` 不再需要，因为现在发送的是完整报告。
+
+原有 `FEISHU_WEBHOOK_URL` 保持不变，用于原报告渠道；如果它与 `GENERIC_AGENT_CHAT_ID` 指向同一群，将出现两份报告，建议让两条链路指向不同群，或停用其中一条。
+
+## Hermes 飞书入站要求
+
+Hermes 默认拒绝其他 bot/app 发出的群消息。目标群要接收本飞书应用发送的报告，需要在 Hermes 飞书配置中启用：
+
+```yaml
+feishu:
+  allow_bots: all
 ```
 
-如希望直接转发、不经过 LLM，可加 `--deliver-only`，并把 prompt 改为 `{title}\n\n{content}`。
+并为目标群关闭 mention 要求：
 
-> 实际 CLI 参数以部署机上的 `hermes webhook subscribe --help` 为准。Hermes 官方文档确认通用 V2 认证头为 `X-Webhook-Signature-V2` 与 `X-Webhook-Timestamp`，签名内容为 `<timestamp>.<raw body>` 的 HMAC-SHA256 hex。
+```yaml
+platforms:
+  feishu:
+    extra:
+      group_rules:
+        <目标群 chat_id>:
+          require_mention: false
+```
 
-## GitHub Secrets
+`allow_bots: all` 是飞书平台级设置；应通过专用群和群规则限制使用范围，避免其他机器人消息触发 Hermes。
 
-- `GENERIC_WEBHOOK_URL=https://<Hermes-host>/webhooks/trendradar-report`
-- `GENERIC_WEBHOOK_SECRET=<与 Hermes route 相同的密钥>`
-- `GENERIC_WEBHOOK_TEMPLATE={"event_type":"trendradar_report","title":"{title}","content":"{content}"}`
+## 运行与验证
 
-`GENERIC_WEBHOOK_TEMPLATE` 必须是合法 JSON 字符串。TrendRadar 会对 `{title}` / `{content}` 做 JSON 转义。
+生产运行仅由 GitHub Actions 托管。本地只用于代码编辑和测试。
 
-## 验证
-
-1. Hermes 本机：`curl http://localhost:8644/health`。
-2. Hermes：`hermes webhook test trendradar-report --payload '{"event_type":"trendradar_report","title":"集成测试","content":"测试报告"}'`。
-3. GitHub Actions 手动运行 `Get Hot News`。
-4. 检查 Actions 日志出现“通用Webhook…发送成功”。
-5. 当前飞书会话应收到 Hermes 处理后的报告；核对标题、首尾新闻、批次数及时间。
-6. 使用错误密钥重测，应返回 HTTP 401；确认未认证数据不会进入 Agent。
-
-## 回滚
-
-删除三个 `GENERIC_WEBHOOK_*` Secrets 即可停用，不影响原 `FEISHU_WEBHOOK_URL` 推送。代码在未配置 `GENERIC_WEBHOOK_SECRET` 时仍兼容原无签名通用 Webhook。
+1. 在 GitHub Actions Secrets 配置上述四个 `GENERIC_AGENT_*` 值。
+2. 确认发送应用与 Hermes 应用都在目标群中。
+3. 重启 Hermes gateway 以加载飞书配置。
+4. 手动运行 `Get Hot News`。
+5. 检查 Actions 日志出现“完整报告已分 N 批发送”。
+6. 检查目标群收到完整报告，并确认 Hermes 创建对应群 Session 后开始处理。

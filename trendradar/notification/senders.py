@@ -1334,69 +1334,87 @@ def send_to_generic_webhook(
 # ===============================================================
 
 
-def send_trigger_to_generic_agent(
+def send_report_to_generic_agent(
     app_id: str,
     app_secret: str,
     chat_id: str,
-    trigger_message: str,
+    report_data: Dict,
+    report_type: str,
+    update_info: Optional[Dict] = None,
     proxy_url: Optional[str] = None,
+    mode: str = "daily",
+    *,
+    batch_size: int = 29000,
+    batch_interval: float = 1.0,
+    split_content_func: Optional[Callable] = None,
+    rss_items: Optional[list] = None,
+    rss_new_items: Optional[list] = None,
+    ai_analysis: Any = None,
+    standalone_data: Optional[Dict] = None,
 ) -> bool:
-    """
-    发送触发消息给通用 Agent
-    
-    Args:
-        app_id: 飞书应用ID
-        app_secret: 飞书应用密钥
-        chat_id: 群聊ID
-        trigger_message: 触发消息内容
-        proxy_url: 代理URL（可选）
-    
-    Returns:
-        bool: 发送是否成功
-    """
-    proxies = None
-    if proxy_url:
-        proxies = {"http": proxy_url, "https": proxy_url}
-    
+    """通过飞书应用 API 将完整报告分批发送给通用 Agent 所在群。"""
+    if split_content_func is None:
+        raise ValueError("split_content_func is required")
+
+    proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+
     try:
-        # 1. 获取tenant_access_token
-        token_url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
-        token_resp = requests.post(
-            token_url,
+        token_response = requests.post(
+            "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal",
             json={"app_id": app_id, "app_secret": app_secret},
             proxies=proxies,
-            timeout=10
+            timeout=10,
         )
-        token_resp.raise_for_status()
-        token = token_resp.json().get("tenant_access_token")
-        
+        token_response.raise_for_status()
+        token = token_response.json().get("tenant_access_token")
         if not token:
-            print("[通用 Agent 触发] 获取token失败")
+            print("[通用 Agent] 获取 token 失败")
             return False
-        
-        # 2. 发送消息
-        send_url = "https://open.feishu.cn/open-apis/im/v1/messages"
+
+        ai_content = _render_ai_analysis(ai_analysis, "feishu") if ai_analysis else None
+        batches = split_content_func(
+            report_data,
+            "feishu",
+            update_info,
+            max_bytes=batch_size - get_max_batch_header_size("feishu"),
+            mode=mode,
+            rss_items=rss_items,
+            rss_new_items=rss_new_items,
+            ai_content=ai_content,
+            standalone_data=standalone_data,
+            ai_stats=_extract_ai_stats(ai_analysis),
+            report_type=report_type,
+        )
+        batches = add_batch_headers(batches, "feishu", batch_size)
         headers = {
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
+        send_url = "https://open.feishu.cn/open-apis/im/v1/messages"
 
-        send_resp = requests.post(
-            send_url,
-            headers=headers,
-            params={"receive_id_type": "chat_id"},
-            json={
-                "receive_id": chat_id,
-                "msg_type": "text",
-                "content": json.dumps({"text": trigger_message})
-            },
-            proxies=proxies,
-            timeout=10
-        )
-        send_resp.raise_for_status()
-        print(f"[通用 Agent 触发] 发送成功: {trigger_message}")
+        for index, content in enumerate(batches, 1):
+            response = requests.post(
+                send_url,
+                headers=headers,
+                params={"receive_id_type": "chat_id"},
+                json={
+                    "receive_id": chat_id,
+                    "msg_type": "text",
+                    "content": json.dumps({"text": content}, ensure_ascii=False),
+                },
+                proxies=proxies,
+                timeout=30,
+            )
+            response.raise_for_status()
+            result = response.json()
+            if result.get("code", 0) != 0:
+                print(f"[通用 Agent] 第 {index}/{len(batches)} 批发送失败: {result.get('msg', '未知错误')}")
+                return False
+            if index < len(batches):
+                time.sleep(batch_interval)
+
+        print(f"[通用 Agent] 完整报告已分 {len(batches)} 批发送 [{report_type}]")
         return True
-    
-    except Exception as e:
-        print(f"[通用 Agent 触发] 发送失败: {e}")
+    except Exception as error:
+        print(f"[通用 Agent] 报告发送失败: {error}")
         return False

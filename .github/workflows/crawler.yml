@@ -139,7 +139,6 @@ jobs:
           GENERIC_AGENT_APP_ID: ${{ secrets.GENERIC_AGENT_APP_ID }}
           GENERIC_AGENT_APP_SECRET: ${{ secrets.GENERIC_AGENT_APP_SECRET }}
           GENERIC_AGENT_CHAT_ID: ${{ secrets.GENERIC_AGENT_CHAT_ID }}
-          GENERIC_AGENT_TRIGGER_MESSAGE: ${{ secrets.GENERIC_AGENT_TRIGGER_MESSAGE }}
           GITHUB_ACTIONS: true
         run: uv run python -m trendradar
 
