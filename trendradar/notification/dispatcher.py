@@ -370,7 +370,7 @@ class NotificationDispatcher:
                 app_id=os.getenv("GENERIC_AGENT_APP_ID", ""),
                 app_secret=os.getenv("GENERIC_AGENT_APP_SECRET", ""),
                 chat_id=os.getenv("GENERIC_AGENT_CHAT_ID", ""),
-                trigger_message=os.getenv("GENERIC_AGENT_TRIGGER_MESSAGE", "[trendradar:report-ready]"),
+                trigger_message=os.getenv("GENERIC_AGENT_TRIGGER_MESSAGE") or "[trendradar:report-ready]",
                 proxy_url=proxy_url,
             )
 
