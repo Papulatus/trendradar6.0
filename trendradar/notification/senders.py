@@ -15,10 +15,7 @@
 每个发送函数都支持分批发送，并通过参数化配置实现与 CONFIG 的解耦。
 """
 
-import hashlib
-import hmac
 import json
-import os
 import smtplib
 import time
 from datetime import datetime
@@ -1310,21 +1307,8 @@ def send_to_generic_webhook(
                 # 默认格式
                 payload = {"title": report_type, "content": batch_content}
 
-            body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-            request_headers = dict(headers)
-            webhook_secret = os.getenv("GENERIC_WEBHOOK_SECRET", "")
-            if webhook_secret:
-                timestamp = str(int(time.time()))
-                signature = hmac.new(
-                    webhook_secret.encode("utf-8"),
-                    timestamp.encode("utf-8") + b"." + body,
-                    hashlib.sha256,
-                ).hexdigest()
-                request_headers["X-Webhook-Timestamp"] = timestamp
-                request_headers["X-Webhook-Signature-V2"] = signature
-
             response = requests.post(
-                webhook_url, headers=request_headers, data=body, proxies=proxies, timeout=30
+                webhook_url, headers=headers, json=payload, proxies=proxies, timeout=30
             )
             
             if response.status_code >= 200 and response.status_code < 300:
