@@ -1,16 +1,14 @@
 name: Check In
 
-# ✅ 签到续期：运行此 workflow 可重置 7 天计时，保持 "Get Hot News" 正常运行
-# ✅ Renewal: Run this workflow to reset the 7-day timer and keep "Get Hot News" active
+# ✅ 自动续期：每天清理超过 1 天的历史运行，持续重置 7 天计时
+# ✅ Auto-renewal: daily cleanup of runs older than one day resets the 7-day timer
 #
-# 📌 操作方法 / How to use:
-#   1. 点击 "Run workflow" 按钮 / Click "Run workflow" button
-#   2. 每 7 天内至少运行一次 / Run at least once every 7 days
+# 保留最近运行及其 24 小时报表 Artifact；无需手动签到。
 
 on:
   schedule:
-    # ✅ 每天运行1次（UTC时间0点0分，对应北京时间8点0分）
-    - cron: '0 0 */1 * *'
+    # 每天 UTC 00:00（北京时间 08:00）自动续期
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -25,7 +23,7 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: 0
-          keep_minimum_runs: 0
+          retain_days: 1
+          keep_minimum_runs: 1
           delete_workflow_by_state_pattern: "ALL"
           delete_run_by_conclusion_pattern: "ALL"
