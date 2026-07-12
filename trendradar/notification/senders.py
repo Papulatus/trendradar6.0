@@ -16,7 +16,6 @@
 """
 
 import json
-import re
 import smtplib
 import time
 from datetime import datetime
@@ -92,28 +91,6 @@ SMTP_CONFIGS = {
     # iCloud邮箱（使用 SSL）
     "icloud.com": {"server": "smtp.mail.me.com", "port": 587, "encryption": "SSL"},
 }
-
-
-_FEISHU_LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://[^)]+)\)")
-
-
-def _build_feishu_post_content(markdown: str) -> list[list[dict[str, str]]]:
-    """Convert report Markdown into Feishu post rows with clickable links."""
-    rows: list[list[dict[str, str]]] = []
-    for line in markdown.splitlines():
-        elements: list[dict[str, str]] = []
-        cursor = 0
-        for match in _FEISHU_LINK_RE.finditer(line):
-            prefix = line[cursor:match.start()]
-            if prefix:
-                elements.append({"tag": "text", "text": prefix.replace("**", "")})
-            elements.append({"tag": "a", "text": match.group(1), "href": match.group(2)})
-            cursor = match.end()
-        suffix = line[cursor:]
-        if suffix or not elements:
-            elements.append({"tag": "text", "text": suffix.replace("**", "")})
-        rows.append(elements)
-    return rows
 
 
 def send_to_feishu(
@@ -196,7 +173,7 @@ def send_to_feishu(
             f"发送{log_prefix}第 {i}/{len(batches)} 批次，大小：{content_size} 字节 [{report_type}]"
         )
 
-        # 飞书开放平台 webhook 使用可引用的 post 富文本；旧版地址回退纯文本。
+        # 飞书开放平台 webhook 支持交互卡片；仅旧版 www.feishu.cn 地址回退纯文本。
         if "www.feishu.cn" in webhook_url:
             payload = {
                 "msg_type": "text",
@@ -206,14 +183,14 @@ def send_to_feishu(
             }
         else:
             payload = {
-                "msg_type": "post",
-                "content": {
-                    "post": {
-                        "zh_cn": {
-                            "title": report_type,
-                            "content": _build_feishu_post_content(batch_content),
-                        }
-                    }
+                "msg_type": "interactive",
+                "card": {
+                    "schema": "2.0",
+                    "body": {
+                        "elements": [
+                            {"tag": "markdown", "content": batch_content}
+                        ]
+                    },
                 },
             }
 
