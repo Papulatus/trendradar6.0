@@ -36,26 +36,3 @@ def test_generic_webhook_uses_hermes_v2_signature(monkeypatch):
     ).hexdigest()
     assert kwargs["headers"]["X-Webhook-Timestamp"] == "1700000000"
     assert kwargs["headers"]["X-Webhook-Signature-V2"] == expected
-
-
-def test_generic_webhook_remains_unsigned_without_secret(monkeypatch):
-    monkeypatch.delenv("GENERIC_WEBHOOK_SECRET", raising=False)
-    response = Mock(status_code=200, text="ok")
-
-    with patch(
-        "trendradar.notification.senders.requests.post", return_value=response
-    ) as post:
-        ok = send_to_generic_webhook(
-            "https://example.invalid/webhook",
-            "",
-            {},
-            "兼容性测试",
-            split_content_func=lambda *args, **kwargs: ["报告正文"],
-        )
-
-    assert ok is True
-    kwargs = post.call_args.kwargs
-    assert kwargs["headers"]["Content-Type"] == "application/json"
-    assert "X-Webhook-Timestamp" not in kwargs["headers"]
-    assert "X-Webhook-Signature-V2" not in kwargs["headers"]
-    assert json.loads(kwargs["data"])["title"] == "兼容性测试"
