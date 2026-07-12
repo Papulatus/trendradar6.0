@@ -174,10 +174,8 @@ def send_to_feishu(
         )
 
         # 根据 webhook 域名选择 payload 格式
-        # www.feishu.cn、open.feishu.cn、open.larksuite.com 使用纯文本格式
-        if ("www.feishu.cn" in webhook_url 
-            or "open.feishu.cn" in webhook_url 
-            or "open.larksuite.com" in webhook_url):
+        # www.feishu.cn 使用纯文本格式，其他域名（open.feishu.cn/open.larksuite.com）使用卡片 2.0
+        if "www.feishu.cn" in webhook_url:
             payload = {
                 "msg_type": "text",
                 "content": {
@@ -1327,79 +1325,3 @@ def send_to_generic_webhook(
     print(f"{log_prefix}所有 {len(batches)} 批次发送完成 [{report_type}]")
 
     return True
-
-
-# ===============================================================
-# 股票虾触发功能 (Papulatus 自定义)
-# ===============================================================
-
-import json
-import requests
-from typing import Optional
-
-def send_trigger_to_gupiao_xia(
-    app_id: str,
-    app_secret: str,
-    chat_id: str,
-    trigger_message: str,
-    proxy_url: Optional[str] = None,
-) -> bool:
-    """
-    发送触发消息给股票虾
-    
-    Args:
-        app_id: 飞书应用ID
-        app_secret: 飞书应用密钥
-        chat_id: 群聊ID
-        trigger_message: 触发消息内容
-        proxy_url: 代理URL（可选）
-    
-    Returns:
-        bool: 发送是否成功
-    """
-    proxies = None
-    if proxy_url:
-        proxies = {"http": proxy_url, "https": proxy_url}
-    
-    try:
-        # 1. 获取tenant_access_token
-        token_url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
-        token_resp = requests.post(
-            token_url,
-            json={"app_id": app_id, "app_secret": app_secret},
-            proxies=proxies,
-            timeout=10
-        )
-        token_resp.raise_for_status()
-        token = token_resp.json().get("tenant_access_token")
-        
-        if not token:
-            print("[股票虾触发] 获取token失败")
-            return False
-        
-        # 2. 发送消息
-        send_url = "https://open.feishu.cn/open-apis/im/v1/messages"
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        }
-
-        send_resp = requests.post(
-            send_url,
-            headers=headers,
-            params={"receive_id_type": "chat_id"},
-            json={
-                "receive_id": chat_id,
-                "msg_type": "text",
-                "content": json.dumps({"text": trigger_message})
-            },
-            proxies=proxies,
-            timeout=10
-        )
-        send_resp.raise_for_status()
-        print(f"[股票虾触发] 发送成功: {trigger_message}")
-        return True
-    
-    except Exception as e:
-        print(f"[股票虾触发] 发送失败: {e}")
-        return False
