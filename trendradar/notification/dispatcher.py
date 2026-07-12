@@ -364,24 +364,14 @@ class NotificationDispatcher:
         # ========== 触发通用 Agent ==========
         generic_agent_enabled = os.getenv("GENERIC_AGENT_ENABLED", "false").lower() == "true"
         if generic_agent_enabled:
-            from .senders import send_report_to_generic_agent
+            from .senders import send_trigger_to_generic_agent
             
-            results["generic_agent"] = send_report_to_generic_agent(
+            results["generic_agent"] = send_trigger_to_generic_agent(
                 app_id=os.getenv("GENERIC_AGENT_APP_ID", ""),
                 app_secret=os.getenv("GENERIC_AGENT_APP_SECRET", ""),
                 chat_id=os.getenv("GENERIC_AGENT_CHAT_ID", ""),
-                report_data=report_data,
-                report_type=report_type,
-                update_info=update_info,
+                trigger_message=os.getenv("GENERIC_AGENT_TRIGGER_MESSAGE", "[trendradar:report-ready]"),
                 proxy_url=proxy_url,
-                mode=mode,
-                batch_size=self.config.get("FEISHU_BATCH_SIZE", 29000),
-                batch_interval=self.config.get("BATCH_SEND_INTERVAL", 1.0),
-                split_content_func=self.split_content_func,
-                rss_items=rss_items,
-                rss_new_items=rss_new_items,
-                ai_analysis=ai_analysis,
-                standalone_data=standalone_data,
             )
 
         return results

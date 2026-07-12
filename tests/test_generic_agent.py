@@ -1,9 +1,9 @@
 from unittest.mock import Mock, patch
 
-from trendradar.notification.senders import send_report_to_generic_agent
+from trendradar.notification.senders import send_trigger_to_generic_agent
 
 
-def test_generic_agent_receives_full_report_in_batches():
+def test_generic_agent_sends_only_control_trigger():
     token_response = Mock()
     token_response.raise_for_status.return_value = None
     token_response.json.return_value = {"tenant_access_token": "token"}
@@ -14,23 +14,18 @@ def test_generic_agent_receives_full_report_in_batches():
 
     with patch(
         "trendradar.notification.senders.requests.post",
-        side_effect=[token_response, send_response, send_response],
+        side_effect=[token_response, send_response],
     ) as post:
-        ok = send_report_to_generic_agent(
+        ok = send_trigger_to_generic_agent(
             app_id="app-id",
             app_secret="app-secret",
             chat_id="oc_target",
-            report_data={"stats": []},
-            report_type="测试报告",
-            split_content_func=lambda *args, **kwargs: ["第一批报告", "第二批报告"],
-            batch_interval=0,
+            trigger_message="[trendradar:report-ready]",
         )
 
     assert ok is True
-    assert post.call_count == 3
-    first_message = post.call_args_list[1]
-    second_message = post.call_args_list[2]
-    assert first_message.kwargs["params"] == {"receive_id_type": "chat_id"}
-    assert first_message.kwargs["json"]["receive_id"] == "oc_target"
-    assert "第一批报告" in first_message.kwargs["json"]["content"]
-    assert "第二批报告" in second_message.kwargs["json"]["content"]
+    assert post.call_count == 2
+    message = post.call_args_list[1]
+    assert message.kwargs["params"] == {"receive_id_type": "chat_id"}
+    assert message.kwargs["json"]["receive_id"] == "oc_target"
+    assert "[trendradar:report-ready]" in message.kwargs["json"]["content"]

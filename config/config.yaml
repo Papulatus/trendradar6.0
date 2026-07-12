@@ -508,3 +508,4 @@ generic_agent:
   app_id: ""                       # 使用GitHub Secrets
   app_secret: ""                   # 使用GitHub Secrets
   chat_id: "oc_d9e6da9ad5b0e0aa961cfb83503a905b"
+  trigger_message: "[trendradar:report-ready]"
