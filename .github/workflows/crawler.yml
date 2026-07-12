@@ -134,14 +134,17 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
           S3_REGION: ${{ secrets.S3_REGION }}
-          # 通用 Agent 触发配置
-          GENERIC_AGENT_ENABLED: ${{ secrets.GENERIC_AGENT_ENABLED }}
-          GENERIC_AGENT_APP_ID: ${{ secrets.GENERIC_AGENT_APP_ID }}
-          GENERIC_AGENT_APP_SECRET: ${{ secrets.GENERIC_AGENT_APP_SECRET }}
-          GENERIC_AGENT_CHAT_ID: ${{ secrets.GENERIC_AGENT_CHAT_ID }}
-          GENERIC_AGENT_TRIGGER_MESSAGE: ${{ secrets.GENERIC_AGENT_TRIGGER_MESSAGE }}
           GITHUB_ACTIONS: true
         run: uv run python -m trendradar
+
+      - name: Upload report artifact for Hermes
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trendradar-report
+          path: output/html/latest/current.html
+          retention-days: 1
+          if-no-files-found: error
 
       # --------------------------------------------------------------------------------
       # ☁️ CLOUDFLARE PAGES DEPLOY / 部署到 Cloudflare Pages（可选）
