@@ -15,9 +15,9 @@
 每个发送函数都支持分批发送，并通过参数化配置实现与 CONFIG 的解耦。
 """
 
-import json
 import smtplib
 import time
+import json
 from datetime import datetime
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
@@ -1327,11 +1327,14 @@ def send_to_generic_webhook(
 
 
 # ===============================================================
-# 通用 Agent 触发功能 (Papulatus 自定义)
+# 股票虾触发功能 (Papulatus 自定义)
 # ===============================================================
 
+import json
+import requests
+from typing import Optional
 
-def send_trigger_to_generic_agent(
+def send_trigger_to_gupiao_xia(
     app_id: str,
     app_secret: str,
     chat_id: str,
@@ -1339,7 +1342,7 @@ def send_trigger_to_generic_agent(
     proxy_url: Optional[str] = None,
 ) -> bool:
     """
-    发送触发消息给通用 Agent
+    发送触发消息给股票虾
     
     Args:
         app_id: 飞书应用ID
@@ -1368,7 +1371,7 @@ def send_trigger_to_generic_agent(
         token = token_resp.json().get("tenant_access_token")
         
         if not token:
-            print("[通用 Agent 触发] 获取token失败")
+            print("[股票虾触发] 获取token失败")
             return False
         
         # 2. 发送消息
@@ -1391,9 +1394,9 @@ def send_trigger_to_generic_agent(
             timeout=10
         )
         send_resp.raise_for_status()
-        print(f"[通用 Agent 触发] 发送成功: {trigger_message}")
+        print(f"[股票虾触发] 发送成功: {trigger_message}")
         return True
     
     except Exception as e:
-        print(f"[通用 Agent 触发] 发送失败: {e}")
+        print(f"[股票虾触发] 发送失败: {e}")
         return False

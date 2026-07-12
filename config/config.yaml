@@ -245,7 +245,7 @@ display:
   # 独立展示区：将指定平台/RSS 完整展示，不受关键词过滤
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
-    platforms: ["wallstreetcn-hot", "cls-hot"]    # 热榜平台 ID 列表
+    platforms: ["wallstreetcn-hot", "cls-hot"]    # 热榜平台 ID 列表（保留股票虾现有配置）
     rss_feeds: []                                  # RSS 源 ID 列表（如 ["hacker-news"]）
     max_items: 20                                  # 每个源最多展示条数（0=不限制）
 
@@ -501,11 +501,11 @@ advanced:
 
 
   # ===============================================================
-  # 12. 通用 Agent 触发配置 (Papulatus 自定义)
+  # 12. 股票虾触发配置 (Papulatus 自定义)
   # ===============================================================
-generic_agent:
+gupiao_xia:
   enabled: false                   # 是否启用（使用环境变量覆盖）
   app_id: ""                       # 使用GitHub Secrets
   app_secret: ""                   # 使用GitHub Secrets
   chat_id: "oc_d9e6da9ad5b0e0aa961cfb83503a905b"
-  trigger_message: "[trendradar:report-ready]"
+  trigger_message: "📊 请分析最新热点并推荐股票"
