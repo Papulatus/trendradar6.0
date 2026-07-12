@@ -173,11 +173,8 @@ def send_to_feishu(
             f"发送{log_prefix}第 {i}/{len(batches)} 批次，大小：{content_size} 字节 [{report_type}]"
         )
 
-        # 根据 webhook 域名选择 payload 格式
-        # www.feishu.cn、open.feishu.cn、open.larksuite.com 使用纯文本格式
-        if ("www.feishu.cn" in webhook_url 
-            or "open.feishu.cn" in webhook_url 
-            or "open.larksuite.com" in webhook_url):
+        # 飞书开放平台 webhook 支持交互卡片；仅旧版 www.feishu.cn 地址回退纯文本。
+        if "www.feishu.cn" in webhook_url:
             payload = {
                 "msg_type": "text",
                 "content": {
