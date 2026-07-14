@@ -149,7 +149,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trendradar-report
-          path: output/html/latest/current.html
+          path: output/html/latest/*.html
           retention-days: 1
           if-no-files-found: error
 
