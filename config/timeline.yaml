@@ -235,6 +235,18 @@ presets:
         push: true                 # 每个时段只推送一次
 
     periods:
+      early_daily_summary:
+        name: "早间全天汇总"
+        start: "07:30"
+        end: "08:00"
+        analyze: true
+        ai_mode: "daily"
+        push: true
+        report_mode: "daily"
+        once:
+          analyze: true
+          push: true
+
       morning_briefing:
         name: "到岗速览"
         start: "09:00"
@@ -279,7 +291,7 @@ presets:
     # 工作日使用三段式推送；周末使用增量自由模式
     day_plans:
       workday:
-        periods: ["morning_briefing", "noon_update", "closing_summary"]
+        periods: ["early_daily_summary", "morning_briefing", "noon_update", "closing_summary"]
       weekend:
         periods: ["weekend_free"]  # 周末：有新增就推，不打扰睡眠
 
