@@ -42,6 +42,11 @@ on:
 
   workflow_dispatch:
     inputs:
+      force_analysis:
+        description: "强制执行 AI 分析（仅手动验证，不改变定时规则）"
+        required: false
+        type: boolean
+        default: false
       force_push:
         description: "忽略推送时段并强制发送（仅手动调试）"
         required: false
@@ -144,6 +149,7 @@ jobs:
           S3_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
           S3_REGION: ${{ secrets.S3_REGION }}
           FORCE_PUSH: ${{ github.event_name == 'workflow_dispatch' && inputs.force_push || 'false' }}
+          FORCE_ANALYSIS: ${{ github.event_name == 'workflow_dispatch' && inputs.force_analysis || 'false' }}
           GITHUB_ACTIONS: true
         run: uv run python -m trendradar
 

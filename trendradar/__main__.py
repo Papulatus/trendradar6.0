@@ -318,12 +318,17 @@ class NewsAnalyzer:
         if not analysis_config.get("ENABLED", False):
             return None
 
+        # 手动验证可绕过分析时段，正常定时运行保持原调度。
+        force_analysis = os.getenv("FORCE_ANALYSIS", "false").lower() == "true"
+        if force_analysis:
+            print("[AI] 手动调试模式: 强制执行 AI 分析")
+
         # 调度系统决策
-        if not schedule.analyze:
+        if not schedule.analyze and not force_analysis:
             print("[AI] 调度器: 当前时间段不执行 AI 分析")
             return None
 
-        if schedule.once_analyze and schedule.period_key:
+        if not force_analysis and schedule.once_analyze and schedule.period_key:
             scheduler = self.ctx.create_scheduler()
             date_str = self.ctx.format_date()
             if scheduler.already_executed(schedule.period_key, "analyze", date_str):
