@@ -1,29 +1,32 @@
 name: Check In
 
-# ✅ 自动续期：每天清理超过 1 天的历史运行，持续重置 7 天计时
-# ✅ Auto-renewal: daily cleanup of runs older than one day resets the 7-day timer
-#
-# 保留最近运行及其 24 小时报表 Artifact；无需手动签到。
-
+# Preserve Actions/report history. A real monthly repository commit prevents
+# GitHub's scheduled-workflow inactivity suspension; deleting run history does not.
 on:
   schedule:
-    # 每天 UTC 00:00（北京时间 08:00）自动续期
-    - cron: '0 0 * * *'
+    - cron: '0 0 1 * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: trendradar-keepalive
+  cancel-in-progress: false
+
 jobs:
-  del_runs:
+  keepalive:
     runs-on: ubuntu-latest
-    permissions:
-      actions: write
-      contents: read
+    timeout-minutes: 5
     steps:
-      - name: Delete all workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
+      - name: Checkout production branch
+        uses: actions/checkout@v6
         with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 1
-          keep_minimum_runs: 1
-          delete_workflow_by_state_pattern: "ALL"
-          delete_run_by_conclusion_pattern: "ALL"
+          ref: master
+          fetch-depth: 1
+      - name: Record monthly repository activity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: keep scheduled TrendRadar reports active"
+          git push origin HEAD:master
